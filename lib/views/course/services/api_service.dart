@@ -13,13 +13,18 @@ class ApiService {
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
+        // Log the JSON response for debugging
+        print('Response JSON: ${response.body}');
+
         // Parse the JSON response
         final Map<String, dynamic> jsonData = json.decode(response.body);
         return Course.fromJson(jsonData);
-      } else if (response.statusCode == 404) {
-        throw Exception('Course not found (404)');
       } else {
-        throw Exception('Failed to load course (Status code: ${response.statusCode})');
+        // Log the response body for debugging
+        print('Error: ${response.statusCode} - ${response.body}');
+        throw Exception(
+          'Failed to load course (Status code: ${response.statusCode})',
+        );
       }
     } on SocketException {
       throw Exception('Network Error: Failed to connect to the server.');
@@ -28,6 +33,8 @@ class ApiService {
     } on FormatException {
       throw Exception('Format Error: Bad response format from server.');
     } catch (e) {
+      // Log the error for debugging
+      print('An unknown error occurred: $e');
       throw Exception('An unknown error occurred: $e');
     }
   }

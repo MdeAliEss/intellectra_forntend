@@ -1,9 +1,11 @@
 // lib/screens/course_detail/course_detail_page.dart
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intellectra/components/constants.dart';
 import 'package:intellectra/views/course/models/course_models.dart';
+import 'package:intellectra/views/course/screens/components/course_info.dart';
 import 'package:intellectra/views/course/services/api_service.dart';
 import 'components/section_menu.dart';
-import 'components/section_viewer.dart';
 import 'components/navigation_buttons.dart';
 import 'components/video_player_widget.dart';
 
@@ -21,6 +23,7 @@ class _CourseDetailPageState2 extends State<CourseDetailPage2> {
   final ApiService _apiService = ApiService();
   int _currentSectionIndex = 0;
   final PageController _pageController = PageController();
+  bool _isVideoPlaying = false;
 
   @override
   void initState() {
@@ -35,7 +38,7 @@ class _CourseDetailPageState2 extends State<CourseDetailPage2> {
   }
 
   // lib/screens/course_detail/course_detail_page.dart
-// ... (keep imports and class definition the same)
+  // ... (keep imports and class definition the same)
 
   @override
   Widget build(BuildContext context) {
@@ -45,18 +48,17 @@ class _CourseDetailPageState2 extends State<CourseDetailPage2> {
           FutureBuilder<Course>(
             future: _courseFuture,
             builder: (context, snapshot) {
-              if (snapshot.hasData && 
-                  snapshot.data?.pdfInternalData != null &&
-                  snapshot.data?.fileType == 'pdf') {
+              if (snapshot.hasData && snapshot.data?.pdfInternalData != null) {
                 return IconButton(
                   icon: Icon(Icons.menu),
-                  onPressed: () => SectionMenu.show(
-                    context,
-                    snapshot.data!,
-                    _currentSectionIndex,
-                    _pageController,
-                    (index) => setState(() => _currentSectionIndex = index),
-                  ),
+                  onPressed:
+                      () => SectionMenu.show(
+                        context,
+                        snapshot.data!,
+                        _currentSectionIndex,
+                        _pageController,
+                        (index) => setState(() => _currentSectionIndex = index),
+                      ),
                 );
               }
               return SizedBox.shrink();
@@ -89,19 +91,94 @@ class _CourseDetailPageState2 extends State<CourseDetailPage2> {
             return Column(
               children: [
                 Expanded(
-                  child: course.fileType == 'video'
-                    ? VideoPlayerWidget(videoUrl: course.file)
-                    : SectionViewer(
-                        course: course,
-                        currentIndex: _currentSectionIndex,
-                        pageController: _pageController,
-                        onPageChanged: (index) => setState(() => _currentSectionIndex = index),
-                      ),
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged:
+                        (index) => setState(() => _currentSectionIndex = index),
+                    itemCount:
+                        course.pdfInternalData?.tableOfContents.length ??
+                        0 + 1, // +1 for the first page
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        // Display both video and introduction on the first page
+                        return Column(
+                          children: [
+                            // Introduction Section
+                            CourseInfo(
+                              course: course,
+                            ), // Display course title and description
+                            const Divider(),
+                            // Video Player Sectionr
+                            VideoPlayerWidget(
+                              videoUrl:
+                                  course.videos ?? '', // Pass the video URL
+                              onVideoPlay: () {
+                                setState(() {
+                                  _isVideoPlaying =
+                                      true; // Update state when video is playing
+                                });
+                              },
+                              onVideoStop: () {
+                                setState(() {
+                                  _isVideoPlaying =
+                                      false; // Update state when video is stopped
+                                });
+                              },
+                            ),
+                          ],
+                        );
+                      } else {
+                        // Display sections for subsequent pages
+                        final tocItem =
+                            course.pdfInternalData!.tableOfContents[index -
+                                1]; // Adjust index for sections
+                        final section = course.pdfInternalData!.sections
+                            .firstWhere(
+                              (s) => s.order == tocItem['order'],
+                              orElse:
+                                  () => CourseSection(
+                                    id: 0,
+                                    title: '',
+                                    content: '',
+                                    order: -1,
+                                  ),
+                            );
+
+                        return SingleChildScrollView(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                tocItem['title'],
+                                style: GoogleFonts.poppins(
+                                  fontSize: 20,
+                                  color: primaryColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                section.content,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textAlign: TextAlign.justify,
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    },
+                  ),
                 ),
-                if (course.fileType == 'pdf')
+                if (course.pdfInternalData != null)
                   NavigationButtons(
                     currentIndex: _currentSectionIndex,
-                    totalSections: course.pdfInternalData?.tableOfContents.length ?? 0,
+                    totalSections:
+                        course.pdfInternalData?.tableOfContents.length ?? 0,
                     pageController: _pageController,
                   ),
               ],

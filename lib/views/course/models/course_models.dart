@@ -2,29 +2,31 @@ class Course {
   final int id;
   final String title;
   final String description;
-  final String file;
-  final String? image;
+  final String? pdfs;
+  final String? videos;
+  final String image;
   final String fileType;
   final String duration;
   final double rating;
   final DateTime createdAt;
   final int professor;
   final int category;
-  final PdfInternalData? pdfInternalData;  // Add this field
+  final PdfInternalData pdfInternalData;
 
   Course({
     required this.id,
     required this.title,
     required this.description,
-    required this.file,
-    this.image,
+    this.pdfs,
+    this.videos,
+    required this.image,
     required this.fileType,
     required this.duration,
     required this.rating,
     required this.createdAt,
     required this.professor,
     required this.category,
-    this.pdfInternalData,  // Add this
+    required this.pdfInternalData,
   });
 
   factory Course.fromJson(Map<String, dynamic> json) {
@@ -32,7 +34,8 @@ class Course {
       id: json['id'],
       title: json['title'],
       description: json['description'],
-      file: json['file'],
+      pdfs: json['pdfs'],
+      videos: json['videos'],
       image: json['image'],
       fileType: json['file_type'],
       duration: json['duration'],
@@ -40,9 +43,7 @@ class Course {
       createdAt: DateTime.parse(json['created_at']),
       professor: json['professor'],
       category: json['category'],
-      pdfInternalData: json['pdf_internal_data'] != null 
-          ? PdfInternalData.fromJson(json['pdf_internal_data'])
-          : null,
+      pdfInternalData: PdfInternalData.fromJson(json['pdf_internal_data']),
     );
   }
 }
@@ -65,9 +66,10 @@ class PdfInternalData {
       id: json['id'],
       name: json['name'],
       tableOfContents: json['table_of_contents'],
-      sections: (json['sections'] as List)
-          .map((section) => CourseSection.fromJson(section))
-          .toList(),
+      sections:
+          (json['sections'] as List)
+              .map((section) => CourseSection.fromJson(section))
+              .toList(),
     );
   }
 }

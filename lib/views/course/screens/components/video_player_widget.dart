@@ -6,9 +6,15 @@ import 'video_player_screen.dart';
 // ignore: must_be_immutable
 class VideoPlayerWidget extends StatelessWidget {
   final String videoUrl;
-  bool _isVideoPlaying = false;
+  final Function onVideoPlay; // Callback for video play
+  final Function onVideoStop; // Callback for video stop
 
-  VideoPlayerWidget({Key? key, required this.videoUrl}) : super(key: key);
+  VideoPlayerWidget({
+    Key? key,
+    required this.videoUrl,
+    required this.onVideoPlay,
+    required this.onVideoStop,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -28,25 +34,20 @@ class VideoPlayerWidget extends StatelessWidget {
               ),
             ),
           ),
-          if (!_isVideoPlaying)
-            IconButton(
-              icon: Icon(
-                Icons.play_circle_filled,
-                size: 32,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                _isVideoPlaying = true;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => VideoPlayerScreen(videoUrl: videoUrl),
-                  ),
-                ).then((_) {
-                  _isVideoPlaying = false;
-                });
-              },
-            ),
+          IconButton(
+            icon: Icon(Icons.play_circle_filled, size: 32, color: Colors.white),
+            onPressed: () {
+              onVideoPlay(); // Call the play callback
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => VideoPlayerScreen(videoUrl: videoUrl),
+                ),
+              ).then((_) {
+                onVideoStop(); // Call the stop callback when returning
+              });
+            },
+          ),
         ],
       ),
     );
