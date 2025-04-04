@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intellectra/components/constants.dart';
 import 'package:intellectra/views/course/models/course_models.dart';
-import 'package:intellectra/views/course/screens/components/course_info.dart';
+import 'package:intellectra/views/course/screens/components/section_viewer.dart';
 import 'package:intellectra/views/course/services/api_service.dart';
 import 'components/section_menu.dart';
 import 'components/navigation_buttons.dart';
@@ -22,23 +22,13 @@ class _CourseDetailPageState2 extends State<CourseDetailPage2> {
   late Future<Course> _courseFuture;
   final ApiService _apiService = ApiService();
   int _currentSectionIndex = 0;
-  final PageController _pageController = PageController();
-  bool _isVideoPlaying = false;
+  PageController _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
     _courseFuture = _apiService.fetchCourseDetails(widget.courseId);
   }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  // lib/screens/course_detail/course_detail_page.dart
-  // ... (keep imports and class definition the same)
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +47,13 @@ class _CourseDetailPageState2 extends State<CourseDetailPage2> {
                         snapshot.data!,
                         _currentSectionIndex,
                         _pageController,
-                        (index) => setState(() => _currentSectionIndex = index),
+                        (index) => setState(() {
+                          _currentSectionIndex =
+                              index; // Update the current section index
+                          _pageController.jumpToPage(
+                            index,
+                          ); // Jump to the selected section
+                        }),
                       ),
                 );
               }
@@ -88,78 +84,77 @@ class _CourseDetailPageState2 extends State<CourseDetailPage2> {
 
           if (snapshot.hasData) {
             final course = snapshot.data!;
+            final sectionCount =
+                course
+                    .pdfInternalData!
+                    .sections
+                    .length; // Get the number of sections
+            print(
+              'Number of sections: $sectionCount',
+            ); // Debugging line to check section count
             return Column(
               children: [
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
-                    onPageChanged:
-                        (index) => setState(() => _currentSectionIndex = index),
-                    itemCount:
-                        course.pdfInternalData?.tableOfContents.length ??
-                        0 + 1, // +1 for the first page
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentSectionIndex =
+                            index; // Update the current section index
+                      });
+                    },
+                    itemCount: sectionCount + 1, // +1 for the video page
                     itemBuilder: (context, index) {
                       if (index == 0) {
-                        // Display both video and introduction on the first page
-                        return Column(
-                          children: [
-                            // Introduction Section
-                            CourseInfo(
-                              course: course,
-                            ), // Display course title and description
-                            const Divider(),
-                            // Video Player Sectionr
-                            VideoPlayerWidget(
-                              videoUrl:
-                                  course.videos ?? '', // Pass the video URL
-                              onVideoPlay: () {
-                                setState(() {
-                                  _isVideoPlaying =
-                                      true; // Update state when video is playing
-                                });
-                              },
-                              onVideoStop: () {
-                                setState(() {
-                                  _isVideoPlaying =
-                                      false; // Update state when video is stopped
-                                });
-                              },
-                            ),
-                          ],
-                        );
-                      } else {
-                        // Display sections for subsequent pages
-                        final tocItem =
-                            course.pdfInternalData!.tableOfContents[index -
-                                1]; // Adjust index for sections
-                        final section = course.pdfInternalData!.sections
-                            .firstWhere(
-                              (s) => s.order == tocItem['order'],
-                              orElse:
-                                  () => CourseSection(
-                                    id: 0,
-                                    title: '',
-                                    content: '',
-                                    order: -1,
-                                  ),
-                            );
-
+                        // First page with video and first section
                         return SingleChildScrollView(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Course Title
                               Text(
-                                tocItem['title'],
+                                course.title,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 10), // Horizontal space
+                              // Course Description
+                              Text(
+                                course.description,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              const SizedBox(height: 20), // Space before video
+                              // Video Player Section
+                              VideoPlayerWidget(
+                                videoUrl: course.videos ?? '',
+                                onVideoPlay: () {},
+                                onVideoStop: () {},
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              ), // Space before section title
+                              // Section Title
+                              Text(
+                                course.pdfInternalData!.sections[0].title,
                                 style: GoogleFonts.poppins(
                                   fontSize: 20,
                                   color: primaryColor,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(
+                                height: 10,
+                              ), // Space before content
+                              // Section Content
                               Text(
-                                section.content,
+                                course.pdfInternalData!.sections[0].content,
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   color: Colors.black,
@@ -170,17 +165,49 @@ class _CourseDetailPageState2 extends State<CourseDetailPage2> {
                             ],
                           ),
                         );
+                      } else {
+                        // Use SectionViewer for subsequent pages
+                        final section =
+                            course.pdfInternalData!.sections[index -
+                                1]; // Adjust index for sections
+                        return SectionViewer(
+                          course: course,
+                          currentIndex:
+                              index - 1, // Pass the correct index for sections
+                          pageController:
+                              _pageController, // Pass the page controller
+                          onPageChanged: (newIndex) {
+                            setState(() {
+                              _currentSectionIndex =
+                                  newIndex; // Update the current section index
+                            });
+                          },
+                        );
                       }
                     },
                   ),
                 ),
-                if (course.pdfInternalData != null)
-                  NavigationButtons(
-                    currentIndex: _currentSectionIndex,
-                    totalSections:
-                        course.pdfInternalData?.tableOfContents.length ?? 0,
-                    pageController: _pageController,
-                  ),
+                // Navigation Buttons
+                NavigationButtons(
+                  currentIndex: _currentSectionIndex,
+                  totalSections: sectionCount, // +1 for the video page
+                  onNext: () {
+                    if (_currentSectionIndex < sectionCount) {
+                      _pageController.nextPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  },
+                  onPrevious: () {
+                    if (_currentSectionIndex > 0) {
+                      _pageController.previousPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  },
+                ),
               ],
             );
           }

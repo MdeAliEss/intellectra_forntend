@@ -32,17 +32,17 @@ class Course {
   factory Course.fromJson(Map<String, dynamic> json) {
     return Course(
       id: json['id'],
-      title: json['title'],
-      description: json['description'],
+      title: json['title'] ?? 'No Title',
+      description: json['description'] ?? 'No Description',
       pdfs: json['pdfs'],
       videos: json['videos'],
-      image: json['image'],
-      fileType: json['file_type'],
-      duration: json['duration'],
-      rating: json['rating'].toDouble(),
+      image: json['image'] ?? '',
+      fileType: json['file_type'] ?? 'unknown',
+      duration: json['duration'] ?? '0',
+      rating: (json['rating'] ?? 0.0).toDouble(),
       createdAt: DateTime.parse(json['created_at']),
-      professor: json['professor'],
-      category: json['category'],
+      professor: json['professor'] ?? 0,
+      category: json['category'] ?? 0,
       pdfInternalData: PdfInternalData.fromJson(json['pdf_internal_data']),
     );
   }

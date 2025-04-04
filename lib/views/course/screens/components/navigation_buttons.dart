@@ -5,13 +5,15 @@ import 'package:intellectra/components/constants.dart';
 class NavigationButtons extends StatelessWidget {
   final int currentIndex;
   final int totalSections;
-  final PageController pageController;
+  final VoidCallback onNext;
+  final VoidCallback onPrevious;
 
   const NavigationButtons({
     Key? key,
     required this.currentIndex,
     required this.totalSections,
-    required this.pageController,
+    required this.onNext,
+    required this.onPrevious,
   }) : super(key: key);
 
   @override
@@ -23,12 +25,7 @@ class NavigationButtons extends StatelessWidget {
         children: [
           if (currentIndex > 0)
             TextButton(
-              onPressed: () {
-                pageController.previousPage(
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
+              onPressed: onPrevious,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -46,15 +43,10 @@ class NavigationButtons extends StatelessWidget {
             )
           else
             SizedBox.shrink(),
-          
+
           if (currentIndex < totalSections - 1)
             TextButton(
-              onPressed: () {
-                pageController.nextPage(
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
+              onPressed: onNext,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -85,7 +77,9 @@ class NavigationButtons extends StatelessWidget {
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pop(); // Close dialog
-                            Navigator.of(context).pop(); // Go back to previous screen
+                            Navigator.of(
+                              context,
+                            ).pop(); // Go back to previous screen
                           },
                           child: Text('Finish'),
                         ),
@@ -100,10 +94,7 @@ class NavigationButtons extends StatelessWidget {
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Finish Course'),
-                  Icon(Icons.check_circle),
-                ],
+                children: [Text('Finish Course'), Icon(Icons.check_circle)],
               ),
             ),
         ],

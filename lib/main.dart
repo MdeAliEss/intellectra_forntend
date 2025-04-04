@@ -12,8 +12,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Intellectra',
-      home: CourseDetailPage2(courseId:32,),
+      home: CourseDetailPage2(courseId: 48),
       debugShowCheckedModeBanner: false,
     );
   }
-} 
+}
