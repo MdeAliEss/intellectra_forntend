@@ -9,16 +9,16 @@ import 'components/section_menu.dart';
 import 'components/navigation_buttons.dart';
 import 'components/video_player_widget.dart';
 
-class CourseDetailPage2 extends StatefulWidget {
+class CourseDetailPage extends StatefulWidget {
   final int courseId;
 
-  const CourseDetailPage2({Key? key, required this.courseId}) : super(key: key);
+  const CourseDetailPage({Key? key, required this.courseId}) : super(key: key);
 
   @override
-  _CourseDetailPageState2 createState() => _CourseDetailPageState2();
+  _CourseDetailPageState createState() => _CourseDetailPageState();
 }
 
-class _CourseDetailPageState2 extends State<CourseDetailPage2> {
+class _CourseDetailPageState extends State<CourseDetailPage> {
   late Future<Course> _courseFuture;
   final ApiService _apiService = ApiService();
   int _currentSectionIndex = 0;
@@ -132,11 +132,7 @@ class _CourseDetailPageState2 extends State<CourseDetailPage2> {
                               ),
                               const SizedBox(height: 20), // Space before video
                               // Video Player Section
-                              VideoPlayerWidget(
-                                videoUrl: course.videos ?? '',
-                                onVideoPlay: () {},
-                                onVideoStop: () {},
-                              ),
+                              VideoPlayerWidget(videoUrl: course.videos ?? ''),
                               const SizedBox(
                                 height: 20,
                               ), // Space before section title
@@ -190,7 +186,7 @@ class _CourseDetailPageState2 extends State<CourseDetailPage2> {
                 // Navigation Buttons
                 NavigationButtons(
                   currentIndex: _currentSectionIndex,
-                  totalSections: sectionCount, // +1 for the video page
+                  totalSections: sectionCount + 1, // +1 for the video page
                   onNext: () {
                     if (_currentSectionIndex < sectionCount) {
                       _pageController.nextPage(

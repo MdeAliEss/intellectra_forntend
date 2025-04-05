@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intellectra/views/course/screens/courses_detail_paeg2.dart';
+import 'package:intellectra/views/course/screens/courses_detail_paeg.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Intellectra',
-      home: CourseDetailPage2(courseId: 48),
+      home: CourseDetailPage(courseId: 48),
       debugShowCheckedModeBanner: false,
     );
   }
