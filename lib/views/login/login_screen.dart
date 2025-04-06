@@ -44,7 +44,10 @@ class LoginScreenState extends State<LoginScreen> {
 
       if (role == "etudiant") {
         Navigator.pushNamed(
-            context, MaterialPageRoute(builder: (context) => ProfileScreen()) as String, arguments: data['id']);
+          context,
+          MaterialPageRoute(builder: (context) => ProfileScreen()) as String,
+          arguments: data['id'],
+        );
       } else if (role == "professor") {
         // Navigator.pushReplacement(
         //     context, MaterialPageRoute(builder: (context) => ProfessorScreen()));

@@ -10,8 +10,8 @@ class SectionMenu {
     PageController pageController,
     Function(int) onIndexChanged,
   ) {
-    final tableOfContents = course.pdfInternalData?.tableOfContents ?? [];
-    final sections = course.pdfInternalData?.sections ?? [];
+    final tableOfContents = course.pdfInternalData.tableOfContents ?? [];
+    final sections = course.pdfInternalData.sections ?? [];
 
     showModalBottomSheet(
       context: context,

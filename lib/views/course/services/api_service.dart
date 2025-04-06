@@ -4,7 +4,7 @@ import 'dart:convert'; // Add this import for JSON parsing
 import 'dart:io';
 
 class ApiService {
-  static const String _baseUrl = "http://127.0.0.1:8000/";
+  static const String _baseUrl = "http://10.0.2.2:8000/";
 
   Future<Course> fetchCourseDetails(int courseId) async {
     final String url = '$_baseUrl/courses/api/courses/$courseId/';
@@ -18,6 +18,19 @@ class ApiService {
 
         // Parse the JSON response
         final Map<String, dynamic> jsonData = json.decode(response.body);
+
+        // Handle video URL for Android
+        if (jsonData['videos'] != null) {
+          String videoUrl = jsonData['videos'];
+          // If the video URL is relative, make it absolute
+          if (!videoUrl.startsWith('http')) {
+            videoUrl = '$_baseUrl$videoUrl';
+          }
+          // Replace localhost with 10.0.2.2 for Android emulator
+          videoUrl = videoUrl.replaceAll('localhost', '10.0.2.2');
+          jsonData['videos'] = videoUrl;
+        }
+
         return Course.fromJson(jsonData);
       } else {
         // Log the response body for debugging

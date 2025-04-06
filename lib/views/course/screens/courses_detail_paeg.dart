@@ -164,12 +164,13 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                       } else {
                         // Use SectionViewer for subsequent pages
                         final section =
-                            course.pdfInternalData!.sections[index -
-                                1]; // Adjust index for sections
+                            course
+                                .pdfInternalData!
+                                .sections[index]; // Adjust index for sections
                         return SectionViewer(
                           course: course,
                           currentIndex:
-                              index - 1, // Pass the correct index for sections
+                              index, // Pass the correct index for sections
                           pageController:
                               _pageController, // Pass the page controller
                           onPageChanged: (newIndex) {
@@ -186,7 +187,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                 // Navigation Buttons
                 NavigationButtons(
                   currentIndex: _currentSectionIndex,
-                  totalSections: sectionCount + 1, // +1 for the video page
+                  totalSections: sectionCount, // +1 for the video page
                   onNext: () {
                     if (_currentSectionIndex < sectionCount) {
                       _pageController.nextPage(

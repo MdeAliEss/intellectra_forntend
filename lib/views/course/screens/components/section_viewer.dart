@@ -21,7 +21,7 @@ class SectionViewer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Adjust index for sections
-    final section = course.pdfInternalData.sections[currentIndex + 1];
+    final section = course.pdfInternalData.sections[currentIndex];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
