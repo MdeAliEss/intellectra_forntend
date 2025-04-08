@@ -1,10 +1,10 @@
-// lib/screens/course_detail/course_detail_page.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intellectra/components/constants.dart';
 import 'package:intellectra/views/course/models/course_models.dart';
 import 'package:intellectra/views/course/screens/components/section_viewer.dart';
 import 'package:intellectra/views/course/services/api_service.dart';
+
 import 'components/section_menu.dart';
 import 'components/navigation_buttons.dart';
 import 'components/video_player_widget.dart';
@@ -23,6 +23,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
   final ApiService _apiService = ApiService();
   int _currentSectionIndex = 0;
   PageController _pageController = PageController();
+  bool _isFinished = false;
 
   @override
   void initState() {
@@ -41,20 +42,16 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
               if (snapshot.hasData && snapshot.data?.pdfInternalData != null) {
                 return IconButton(
                   icon: Icon(Icons.menu),
-                  onPressed:
-                      () => SectionMenu.show(
-                        context,
-                        snapshot.data!,
-                        _currentSectionIndex,
-                        _pageController,
+                  onPressed: () => SectionMenu.show(
+                    context,
+                    snapshot.data!,
+                    _currentSectionIndex,
+                    _pageController,
                         (index) => setState(() {
-                          _currentSectionIndex =
-                              index; // Update the current section index
-                          _pageController.jumpToPage(
-                            index,
-                          ); // Jump to the selected section
-                        }),
-                      ),
+                      _currentSectionIndex = index;
+                      _pageController.jumpToPage(index);
+                    }),
+                  ),
                 );
               }
               return SizedBox.shrink();
@@ -84,14 +81,9 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
 
           if (snapshot.hasData) {
             final course = snapshot.data!;
-            final sectionCount =
-                course
-                    .pdfInternalData!
-                    .sections
-                    .length; // Get the number of sections
-            print(
-              'Number of sections: $sectionCount',
-            ); // Debugging line to check section count
+            final sectionCount = course.pdfInternalData!.sections.length;
+            final hasVideo = course.videos != null && course.videos!.isNotEmpty;
+
             return Column(
               children: [
                 Expanded(
@@ -99,20 +91,17 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                     controller: _pageController,
                     onPageChanged: (index) {
                       setState(() {
-                        _currentSectionIndex =
-                            index; // Update the current section index
+                        _currentSectionIndex = index;
                       });
                     },
-                    itemCount: sectionCount + 1, // +1 for the video page
+                    itemCount: sectionCount + 1, // +1 for video/intro page
                     itemBuilder: (context, index) {
                       if (index == 0) {
-                        // First page with video and first section
                         return SingleChildScrollView(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Course Title
                               Text(
                                 course.title,
                                 style: GoogleFonts.poppins(
@@ -121,8 +110,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                                   color: Colors.black87,
                                 ),
                               ),
-                              const SizedBox(height: 10), // Horizontal space
-                              // Course Description
+                              const SizedBox(height: 10),
                               Text(
                                 course.description,
                                 style: GoogleFonts.poppins(
@@ -130,13 +118,11 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                                   color: Colors.black54,
                                 ),
                               ),
-                              const SizedBox(height: 20), // Space before video
-                              // Video Player Section
-                              VideoPlayerWidget(videoUrl: course.videos ?? ''),
-                              const SizedBox(
-                                height: 20,
-                              ), // Space before section title
-                              // Section Title
+                              if (hasVideo) ...[
+                                const SizedBox(height: 20),
+                                VideoPlayerWidget(videoUrl: course.videos!),
+                              ],
+                              const SizedBox(height: 20),
                               Text(
                                 course.pdfInternalData!.sections[0].title,
                                 style: GoogleFonts.poppins(
@@ -145,10 +131,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              const SizedBox(
-                                height: 10,
-                              ), // Space before content
-                              // Section Content
+                              const SizedBox(height: 10),
                               Text(
                                 course.pdfInternalData!.sections[0].content,
                                 style: GoogleFonts.poppins(
@@ -162,21 +145,14 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                           ),
                         );
                       } else {
-                        // Use SectionViewer for subsequent pages
-                        final section =
-                            course
-                                .pdfInternalData!
-                                .sections[index]; // Adjust index for sections
+                        final section = course.pdfInternalData!.sections[index];
                         return SectionViewer(
                           course: course,
-                          currentIndex:
-                              index, // Pass the correct index for sections
-                          pageController:
-                              _pageController, // Pass the page controller
+                          currentIndex: index,
+                          pageController: _pageController,
                           onPageChanged: (newIndex) {
                             setState(() {
-                              _currentSectionIndex =
-                                  newIndex; // Update the current section index
+                              _currentSectionIndex = newIndex;
                             });
                           },
                         );
@@ -184,10 +160,9 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                     },
                   ),
                 ),
-                // Navigation Buttons
                 NavigationButtons(
                   currentIndex: _currentSectionIndex,
-                  totalSections: sectionCount, // +1 for the video page
+                  totalSections: sectionCount + 1,
                   onNext: () {
                     if (_currentSectionIndex < sectionCount) {
                       _pageController.nextPage(
@@ -204,6 +179,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                       );
                     }
                   },
+                  isFinished: _isFinished,
                 ),
               ],
             );

@@ -7,6 +7,7 @@ class NavigationButtons extends StatelessWidget {
   final int totalSections;
   final VoidCallback onNext;
   final VoidCallback onPrevious;
+  final bool isFinished;
 
   const NavigationButtons({
     Key? key,
@@ -14,6 +15,7 @@ class NavigationButtons extends StatelessWidget {
     required this.totalSections,
     required this.onNext,
     required this.onPrevious,
+    required this.isFinished,
   }) : super(key: key);
 
   @override
@@ -66,27 +68,37 @@ class NavigationButtons extends StatelessWidget {
           else
             ElevatedButton(
               onPressed: () {
-                // Handle course completion
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Congratulations!'),
-                      content: Text('You have completed the course.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Close dialog
-                            Navigator.of(
-                              context,
-                            ).pop(); // Go back to previous screen
-                          },
-                          child: Text('Finish'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                if (isFinished) {
+                  // Handle course completion
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Congratulations!'),
+                        content: Text('You have completed the course.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Close dialog
+                              Navigator.of(
+                                context,
+                              ).pop(); // Go back to previous screen
+                            },
+                            child: Text('Finish'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Please complete all quizzes before finishing the course.',
+                      ),
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
