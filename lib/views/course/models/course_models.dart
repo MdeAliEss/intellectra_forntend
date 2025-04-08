@@ -12,6 +12,7 @@ class Course {
   final int professor;
   final int category;
   final PdfInternalData pdfInternalData;
+  final List<CourseQuiz> quizzes; // ✅ Replaces question/answer/correctAnswer
 
   Course({
     required this.id,
@@ -27,6 +28,7 @@ class Course {
     required this.professor,
     required this.category,
     required this.pdfInternalData,
+    required this.quizzes,
   });
 
   factory Course.fromJson(Map<String, dynamic> json) {
@@ -43,10 +45,19 @@ class Course {
       createdAt: DateTime.parse(json['created_at']),
       professor: json['professor'] ?? 0,
       category: json['category'] ?? 0,
-      pdfInternalData: PdfInternalData.fromJson(json['pdf_internal_data']),
+      pdfInternalData: PdfInternalData.fromJson(json['pdf_internal_data'] ?? {
+        'id': 0,
+        'name': '',
+        'table_of_contents': [],
+        'sections': [],
+      }),
+      quizzes: (json['quizzes'] ?? [])
+          .map<CourseQuiz>((q) => CourseQuiz.fromJson(q))
+          .toList(),
     );
   }
 }
+
 
 class PdfInternalData {
   final int id;
@@ -96,3 +107,33 @@ class CourseSection {
     );
   }
 }
+
+class CourseQuiz {
+  final int id;
+  final String question; // The quiz question text
+  final List<String> answers; // The list of possible answer texts
+  final int correctAnswer; // The INDEX of the correct answer in the 'answers' list
+  final int order;
+
+  CourseQuiz({
+    required this.id,
+    required this.question,
+    required this.answers,
+    required this.correctAnswer, // Needs to be the correct index (0, 1, 2...)
+    required this.order,
+  });
+
+  factory CourseQuiz.fromJson(Map<String, dynamic> json) {
+    return CourseQuiz(
+      id: json['id'] ?? 0,
+      question: json['question'] ?? '',
+      answers: List<String>.from(json['answers'] ?? []),
+      // This line reads the correct answer index from the JSON field 'correct_answer'
+      // If 'correct_answer' is missing or null in the JSON, it defaults to 0.
+      correctAnswer: json['correct_index'] ?? 0,
+      order: json['order'] ?? 0,
+    );
+  }
+}
+
+

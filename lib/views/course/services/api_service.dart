@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'package:intellectra/views/course/models/course_models.dart';
-import 'dart:convert'; // Add this import for JSON parsing
+import 'dart:convert';
 import 'dart:io';
 
 class ApiService {
@@ -13,31 +13,29 @@ class ApiService {
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
-        // Log the JSON response for debugging
         print('Response JSON: ${response.body}');
 
-        // Parse the JSON response
         final Map<String, dynamic> jsonData = json.decode(response.body);
 
-        // Handle video URL for Android
+        // Fix video URL for Android
         if (jsonData['videos'] != null) {
           String videoUrl = jsonData['videos'];
-          // If the video URL is relative, make it absolute
           if (!videoUrl.startsWith('http')) {
             videoUrl = '$_baseUrl$videoUrl';
           }
-          // Replace localhost with 10.0.2.2 for Android emulator
           videoUrl = videoUrl.replaceAll('localhost', '10.0.2.2');
           jsonData['videos'] = videoUrl;
         }
 
+        // ✅ Debug log for quiz fields
+        print('Quiz - question: ${jsonData['question']}');
+        print('Quiz - answer: ${jsonData['answer']}');
+        print('Quiz - correct_answer: ${jsonData['correct_answer']}');
+
         return Course.fromJson(jsonData);
       } else {
-        // Log the response body for debugging
         print('Error: ${response.statusCode} - ${response.body}');
-        throw Exception(
-          'Failed to load course (Status code: ${response.statusCode})',
-        );
+        throw Exception('Failed to load course (Status code: ${response.statusCode})');
       }
     } on SocketException {
       throw Exception('Network Error: Failed to connect to the server.');
@@ -46,7 +44,6 @@ class ApiService {
     } on FormatException {
       throw Exception('Format Error: Bad response format from server.');
     } catch (e) {
-      // Log the error for debugging
       print('An unknown error occurred: $e');
       throw Exception('An unknown error occurred: $e');
     }
