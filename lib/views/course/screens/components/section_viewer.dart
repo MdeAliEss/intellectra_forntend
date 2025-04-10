@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intellectra/components/constants.dart';
-import 'package:intellectra/views/course/models/course_models.dart';
+// import 'package:intellectra/views/course/models/course_models.dart'; // Remove old import
+import '../../models/course.dart'; // Add correct import
 
 class SectionViewer extends StatelessWidget {
   final Course course;
@@ -20,8 +21,17 @@ class SectionViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Adjust index for sections
-    final section = course.pdfInternalData.sections[currentIndex];
+    // Add a null check before accessing sections
+    final section =
+        course.pdfInternalData?.sections != null &&
+                course.pdfInternalData!.sections.length > currentIndex
+            ? course.pdfInternalData!.sections[currentIndex]
+            : null; // Handle case where section might not exist (though logic should prevent this)
+
+    if (section == null) {
+      // Handle the case where the section is unexpectedly null
+      return Center(child: Text("Error: Section data not found."));
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),

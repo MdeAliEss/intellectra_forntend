@@ -1,7 +1,8 @@
 // lib/screens/course_detail/components/section_menu.dart
 import 'package:flutter/material.dart';
-// Ensure these paths are correct for your project structure
-import 'package:intellectra/views/course/models/course_models.dart';
+import 'package:google_fonts/google_fonts.dart';
+// import 'package:intellectra/views/course/models/course_models.dart'; // Remove old import
+import '../../models/course.dart'; // Add correct import
 import 'package:intellectra/components/constants.dart'; // Assuming you use this for primaryColor
 
 class SectionMenu {
@@ -10,10 +11,11 @@ class SectionMenu {
     Course course,
     int currentVisiblePageIndex, // Pass the current index of the PageView
     PageController pageController,
-    Function(int) onPageSelected, // Callback accepting the target PageView index
+    Function(int)
+    onPageSelected, // Callback accepting the target PageView index
   ) {
     // Use the sections list as the primary source for menu items
-    final sections = course.pdfInternalData.sections ?? [];
+    final sections = course.pdfInternalData!.sections ?? [];
     // Check if the course actually has quizzes
     final bool hasQuizzes = course.quizzes.isNotEmpty;
 
@@ -23,7 +25,8 @@ class SectionMenu {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Allow modal to take more height if needed
-      shape: const RoundedRectangleBorder( // Optional: Add rounded top corners
+      shape: const RoundedRectangleBorder(
+        // Optional: Add rounded top corners
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
       builder: (BuildContext context) {
@@ -33,43 +36,63 @@ class SectionMenu {
             maxHeight: MediaQuery.of(context).size.height * 0.7,
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // Make column height adapt to content
+            mainAxisSize:
+                MainAxisSize.min, // Make column height adapt to content
             children: [
               // --- Menu Header ---
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Text(
                   'Course Content', // Or course.title
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               const Divider(height: 1, thickness: 1), // Visual separator
-
               // --- Scrollable Menu Items ---
-              Flexible( // Use Flexible + shrinkWrap for ListView in Column
+              Flexible(
+                // Use Flexible + shrinkWrap for ListView in Column
                 child: ListView.builder(
                   shrinkWrap: true,
-                  itemCount: totalMenuItems,
-                  itemBuilder: (context, index) {
+                  itemCount:
+                      course.pdfInternalData?.sections.length ??
+                      0, // Null check
+                  itemBuilder: (BuildContext context, int index) {
+                    // Access sections only if pdfInternalData is not null
+                    final sectionTitle =
+                        course.pdfInternalData?.sections[index].title ??
+                        'Unknown Section';
+                    final isCurrent = index == currentVisiblePageIndex;
+
                     // Determine the target PageView index for this menu item.
                     // Menu index corresponds directly to PageView index here.
                     int targetPageIndex = index;
 
-                    bool isSelected = (targetPageIndex == currentVisiblePageIndex);
+                    bool isSelected =
+                        (targetPageIndex == currentVisiblePageIndex);
                     String title;
                     Widget leadingWidget;
 
                     // --- Build Section Item ---
                     if (index < sections.length) {
                       // Get title from the section data
-                      title = sections[index].title;
+                      title = sectionTitle;
                       // Create leading widget (e.g., numbered circle)
                       leadingWidget = CircleAvatar(
                         radius: 14,
-                        backgroundColor: isSelected ? primaryColor : Colors.grey.shade300,
-                        foregroundColor: isSelected ? Colors.white : Colors.black54,
+                        backgroundColor:
+                            isSelected ? primaryColor : Colors.grey.shade300,
+                        foregroundColor:
+                            isSelected ? Colors.white : Colors.black54,
                         // Displaying index + 1 for user-friendly numbering (1, 2, 3...)
-                        child: Text('${index + 1}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       );
                     }
                     // --- Build Quiz Item (only if quizzes exist and index is the last one) ---
@@ -78,8 +101,10 @@ class SectionMenu {
                       // Create leading widget (e.g., icon)
                       leadingWidget = CircleAvatar(
                         radius: 14,
-                        backgroundColor: isSelected ? primaryColor : Colors.grey.shade300,
-                        foregroundColor: isSelected ? Colors.white : Colors.black54,
+                        backgroundColor:
+                            isSelected ? primaryColor : Colors.grey.shade300,
+                        foregroundColor:
+                            isSelected ? Colors.white : Colors.black54,
                         child: const Icon(Icons.quiz_outlined, size: 16),
                       );
                       // Ensure targetPageIndex is correctly set to sections.length
@@ -98,8 +123,12 @@ class SectionMenu {
                       title: Text(
                         title,
                         style: TextStyle(
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected ? primaryColor : null, // Highlight selected item text
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          color:
+                              isSelected
+                                  ? primaryColor
+                                  : null, // Highlight selected item text
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 // Make sure these paths are correct for your project structure
 import 'package:intellectra/components/constants.dart'; // Assuming you have this for primaryColor
-import 'package:intellectra/views/course/models/course_models.dart'; // Your Course and Quiz models
+import '../../models/course.dart'; // Add correct import
+import '../../models/quiz.dart'; // Ensure Quiz model is imported
 
 class SectionQuiz extends StatefulWidget {
   final Course course; // The course data containing quizzes
   final VoidCallback onFinish; // Callback when the quiz/course is finished
-  final PageController pageController; // Controller for the main PageView in CourseDetailPage
+  final PageController
+  pageController; // Controller for the main PageView in CourseDetailPage
 
   const SectionQuiz({
     Key? key,
@@ -24,7 +26,8 @@ class _SectionQuizState extends State<SectionQuiz> {
   int _currentQuestionIndex = 0; // Tracks the current question being displayed
   int _correctAnswers = 0; // Counter for correctly answered questions
   bool _showResultPage = false; // Flag to control showing the results view
-  List<int?> _selectedAnswers = []; // Stores the selected answer index for each question (null if not answered)
+  List<int?> _selectedAnswers =
+      []; // Stores the selected answer index for each question (null if not answered)
 
   @override
   void initState() {
@@ -37,17 +40,21 @@ class _SectionQuizState extends State<SectionQuiz> {
   // Handles selecting an answer for the current question
   void _selectAnswer(int selectedIndex) {
     // Allow users to change their answer before moving to the next question
-    final correct = widget.course.quizzes[_currentQuestionIndex].correctAnswer;
+    final correct =
+        widget.course.quizzes[_currentQuestionIndex].correctAnswerIndex;
     final previouslySelected = _selectedAnswers[_currentQuestionIndex];
-    final wasCorrect = previouslySelected != null && previouslySelected == correct;
+    final wasCorrect =
+        previouslySelected != null && previouslySelected == correct;
     final isCorrect = selectedIndex == correct;
 
     // Update state to reflect the new selection and potentially adjust the score
     setState(() {
       // If changing answer, adjust score accordingly
       if (previouslySelected != null && previouslySelected != selectedIndex) {
-        if (wasCorrect && !isCorrect) _correctAnswers--; // Was correct, now wrong
-        if (!wasCorrect && isCorrect) _correctAnswers++; // Was wrong, now correct
+        if (wasCorrect && !isCorrect)
+          _correctAnswers--; // Was correct, now wrong
+        if (!wasCorrect && isCorrect)
+          _correctAnswers++; // Was wrong, now correct
       } else if (previouslySelected == null && isCorrect) {
         // First time answering this question correctly
         _correctAnswers++;
@@ -81,7 +88,6 @@ class _SectionQuizState extends State<SectionQuiz> {
       curve: Curves.easeInOut,
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -165,14 +171,17 @@ class _SectionQuizState extends State<SectionQuiz> {
     // ... (This function remains exactly the same as the previous version) ...
     return Column(
       children: List.generate(quiz.answers.length, (i) {
-        bool isCorrectAnswer = i == quiz.correctAnswer;
+        bool isCorrectAnswer = i == quiz.correctAnswerIndex;
         bool isSelected = i == selectedIndex;
         bool isSelectedWrong = isAnswered && isSelected && !isCorrectAnswer;
 
         // Determine button styling based on answer state
         Color buttonColor = Colors.white;
         Color textColor = Colors.black87;
-        BorderSide borderSide = BorderSide(color: Colors.grey.shade300, width: 1.5);
+        BorderSide borderSide = BorderSide(
+          color: Colors.grey.shade300,
+          width: 1.5,
+        );
         Icon? trailingIcon;
 
         if (isAnswered) {
@@ -182,13 +191,21 @@ class _SectionQuizState extends State<SectionQuiz> {
             borderSide = BorderSide(color: Colors.green.shade400, width: 1.5);
             if (isSelected) {
               borderSide = BorderSide(color: Colors.green.shade600, width: 2.0);
-              trailingIcon = Icon(Icons.check_circle, color: Colors.green.shade700, size: 20);
+              trailingIcon = Icon(
+                Icons.check_circle,
+                color: Colors.green.shade700,
+                size: 20,
+              );
             }
           } else if (isSelectedWrong) {
             buttonColor = Colors.red.shade50;
             textColor = Colors.red.shade800;
             borderSide = BorderSide(color: Colors.red.shade400, width: 2.0);
-            trailingIcon = Icon(Icons.cancel, color: Colors.red.shade700, size: 20);
+            trailingIcon = Icon(
+              Icons.cancel,
+              color: Colors.red.shade700,
+              size: 20,
+            );
           } else {
             // Other non-selected, non-correct answers after answering
             buttonColor = Colors.grey.shade100;
@@ -213,7 +230,8 @@ class _SectionQuizState extends State<SectionQuiz> {
             ),
             child: Row(
               children: [
-                Expanded( // Ensure text wraps if needed
+                Expanded(
+                  // Ensure text wraps if needed
                   child: Text(
                     quiz.answers[i],
                     style: GoogleFonts.poppins(
@@ -241,43 +259,59 @@ class _SectionQuizState extends State<SectionQuiz> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, // Pushes buttons apart
+        mainAxisAlignment:
+            MainAxisAlignment.spaceBetween, // Pushes buttons apart
         children: [
           // --- Previous Button Logic (SIMPLIFIED) ---
           // Show button ONLY on the first question (index 0)
           if (_currentQuestionIndex == 0)
             _buildNavButton(
-              label: 'Prev Section',
+              label: 'Previous Section',
               iconData: Icons.arrow_back_ios,
               onPressed: _previousSection, // Navigate main PageView
               isLeading: true,
             )
           else
-          // On ALL other questions (index >= 1), show an empty space
-          // This keeps the "Next" button aligned to the right.
-            const SizedBox(width: 120), // Adjust width to balance visually or use Spacer()
-
+            // On ALL other questions (index >= 1), show an empty space
+            // This keeps the "Next" button aligned to the right.
+            const SizedBox(
+              width: 120,
+            ), // Adjust width to balance visually or use Spacer()
           // --- Next / Show Result Button Logic (Unchanged) ---
           if (_currentQuestionIndex < totalQuestions - 1)
-          // Not the last question: Show "Next" button
+            // Not the last question: Show "Next" button
             _buildNavButton(
               label: 'Next',
               iconData: Icons.arrow_forward_ios,
-              onPressed: isAnswered ? _nextQuestion : null, // Enabled only if answered
+              onPressed:
+                  isAnswered ? _nextQuestion : null, // Enabled only if answered
               isLeading: false,
             )
           else
-          // Last question: Show "Show Result" button
+            // Last question: Show "Show Result" button
             ElevatedButton(
-              onPressed: isAnswered ? () => setState(() { _showResultPage = true; }) : null,
+              onPressed:
+                  isAnswered
+                      ? () => setState(() {
+                        _showResultPage = true;
+                      })
+                      : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue.shade600,
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: Colors.grey.shade300,
                 disabledForegroundColor: Colors.grey.shade500,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                textStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
               ),
               child: const Text("Show Result"),
             ),
@@ -291,12 +325,17 @@ class _SectionQuizState extends State<SectionQuiz> {
     required String label,
     required IconData iconData,
     required VoidCallback? onPressed,
-    required bool isLeading // True if it's a 'previous' button, false for 'next'
+    required bool
+    isLeading, // True if it's a 'previous' button, false for 'next'
   }) {
     // ... (This function remains exactly the same as the previous version) ...
     return TextButton.icon(
       onPressed: onPressed,
-      icon: Icon(iconData, color: onPressed != null ? primaryColor : Colors.grey, size: 18),
+      icon: Icon(
+        iconData,
+        color: onPressed != null ? primaryColor : Colors.grey,
+        size: 18,
+      ),
       label: Text(
         label,
         style: GoogleFonts.poppins(
@@ -306,11 +345,12 @@ class _SectionQuizState extends State<SectionQuiz> {
         ),
       ),
       style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 8), // Consistent padding
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8,
+        ), // Consistent padding
       ),
     );
   }
-
 
   // Helper Widget: Builds the Result Page View
   Widget _buildResultPage(int totalQuestions) {
@@ -352,15 +392,21 @@ class _SectionQuizState extends State<SectionQuiz> {
           const SizedBox(height: 40),
           // Finish Button
           ElevatedButton.icon(
-            onPressed: widget.onFinish, // Trigger the callback passed from parent
+            onPressed:
+                widget.onFinish, // Trigger the callback passed from parent
             icon: const Icon(Icons.check_circle_outline),
             label: const Text("Finish Course"),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green.shade600,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              textStyle: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w500),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              textStyle: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
             ),
           ),
         ],
@@ -388,10 +434,13 @@ class _SectionQuizState extends State<SectionQuiz> {
             ElevatedButton(
               onPressed: widget.onFinish, // Still allow finishing
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
               child: const Text("Finish Course"),
-            )
+            ),
           ],
         ),
       ),

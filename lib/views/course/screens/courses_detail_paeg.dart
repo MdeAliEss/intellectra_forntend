@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intellectra/components/constants.dart';
-import 'package:intellectra/views/course/models/course_models.dart';
+// import 'package:intellectra/views/course/models/course_models.dart'; // Remove old import
+import '../models/course.dart'; // Add correct import
 import 'package:intellectra/views/course/screens/components/section_viewer.dart';
 import 'package:intellectra/views/course/services/api_service.dart';
 import 'components/section_menu.dart';
@@ -42,16 +43,17 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
               if (snapshot.hasData && snapshot.data?.pdfInternalData != null) {
                 return IconButton(
                   icon: Icon(Icons.menu),
-                  onPressed: () => SectionMenu.show(
-                    context,
-                    snapshot.data!,
-                    _currentSectionIndex,
-                    _pageController,
+                  onPressed:
+                      () => SectionMenu.show(
+                        context,
+                        snapshot.data!,
+                        _currentSectionIndex,
+                        _pageController,
                         (index) => setState(() {
-                      _currentSectionIndex = index;
-                      _pageController.jumpToPage(index);
-                    }),
-                  ),
+                          _currentSectionIndex = index;
+                          _pageController.jumpToPage(index);
+                        }),
+                      ),
                 );
               }
               return SizedBox.shrink();
@@ -156,7 +158,8 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                         );
                       } else {
                         // Section pages (index 1 to sectionCount)
-                        final section = course.pdfInternalData!.sections[index - 1];
+                        final section =
+                            course.pdfInternalData!.sections[index - 1];
                         return SectionViewer(
                           course: course,
                           currentIndex: index,
@@ -172,27 +175,27 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                   ),
                 ),
                 if (_currentSectionIndex != sectionCount + 1)
-          NavigationButtons(
-          currentIndex: _currentSectionIndex,
-          totalSections: sectionCount + 2,
-          onNext: () {
-          if (_currentSectionIndex < sectionCount + 1) {
-          _pageController.nextPage(
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            }
-          },
-          onPrevious: () {
-          if (_currentSectionIndex > 0) {
-          _pageController.previousPage(
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          );
-          }
-          },
-          isFinished: _isFinished,
-          ),
+                  NavigationButtons(
+                    currentIndex: _currentSectionIndex,
+                    totalSections: sectionCount + 2,
+                    onNext: () {
+                      if (_currentSectionIndex < sectionCount + 1) {
+                        _pageController.nextPage(
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      }
+                    },
+                    onPrevious: () {
+                      if (_currentSectionIndex > 0) {
+                        _pageController.previousPage(
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      }
+                    },
+                    isFinished: _isFinished,
+                  ),
               ],
             );
           }
