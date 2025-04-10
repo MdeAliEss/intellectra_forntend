@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'dart:async'; // Import Timer
 
 class VideoListPage extends StatefulWidget {
   @override
@@ -55,267 +56,259 @@ class VideoPlayerWidget extends StatefulWidget {
 
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   late VideoPlayerController _controller;
-  bool _isInitialized = false;
-  bool _showControls = true;
-  bool _hasError = false;
-  String _errorMessage = '';
+  late Future<void> _initializeVideoPlayerFuture;
+  bool _isPlaying = false;
+  bool _showControls = false; // State for controls visibility
+  Timer? _hideControlsTimer; // Timer for auto-hiding controls
 
   @override
   void initState() {
     super.initState();
-    _initializeVideoPlayer();
-  }
-
-  void _initializeVideoPlayer() {
-    print("Initializing video player for ${widget.videoUrl}");
-    _controller = VideoPlayerController.network(widget.videoUrl)
-      ..initialize().then((_) {
-        print("Video player initialized for ${widget.videoUrl}");
-        setState(() {
-          _isInitialized = true;
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
+    _initializeVideoPlayerFuture = _controller
+        .initialize()
+        .then((_) {
+          setState(() {});
+        })
+        .catchError((error) {
+          print("Video Initialization Error: $error");
+          setState(() {});
         });
-        if (widget.isActive) {
-          print("Widget is active, playing video for ${widget.videoUrl}");
-          _controller.play();
-        }
-      }).catchError((error) {
-        setState(() {
-          _hasError = true;
-          _errorMessage = error.toString();
-          print('Video Error for ${widget.videoUrl}: $_errorMessage');
-        });
-      });
 
     _controller.addListener(() {
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _isPlaying = _controller.value.isPlaying;
+        });
       }
-    });
-  }
-
-  @override
-  void didUpdateWidget(covariant VideoPlayerWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.videoUrl != widget.videoUrl) {
-      print("Video URL changed from ${oldWidget.videoUrl} to ${widget.videoUrl}");
-      _disposeVideoPlayer();
-      _isInitialized = false;
-      _hasError = false;
-      _initializeVideoPlayer();
-    }
-    if (_isInitialized && !_hasError) {
-      if (widget.isActive && !_controller.value.isPlaying) {
-        print("Widget became active, playing video for ${widget.videoUrl}");
-        _controller.play();
-      } else if (!widget.isActive && _controller.value.isPlaying) {
-        print("Widget became inactive, pausing video for ${widget.videoUrl}");
-        _controller.pause();
-      }
-    }
-  }
-
-  void _disposeVideoPlayer() {
-    print("Disposing video player for ${widget.videoUrl}");
-    _controller.dispose();
-  }
-
-  @override
-  void dispose() {
-    _disposeVideoPlayer();
-    super.dispose();
-  }
-
-  void _playVideo() {
-    print("Play video requested for ${widget.videoUrl}");
-    _controller.play();
-    setState(() {
-      _showControls = false;
-    });
-  }
-
-  void _stopVideo() {
-    print("Stop video requested for ${widget.videoUrl}");
-    _controller.pause();
-    setState(() {
-      _showControls = true;
     });
   }
 
   void _seekForward() {
-    if (_isInitialized) {
+    if (_controller.value.isInitialized) {
       final currentPosition = _controller.value.position;
-      final newPosition = currentPosition + Duration(seconds: 10);
-
-      print("Before forward seek, isPlaying: ${_controller.value.isPlaying}, position: $currentPosition");
-      _controller.play();
-      print("After pause (forward), isPlaying: ${_controller.value.isPlaying}, position: ${_controller.value.position}");
-
+      final newPosition = currentPosition + const Duration(seconds: 10);
+      // Ensure seeking doesn't go beyond video duration
       if (newPosition < _controller.value.duration) {
         _controller.seekTo(newPosition);
-        print("After forward seek, isPlaying: ${_controller.value.isPlaying}, new position: $newPosition");
       } else {
         _controller.seekTo(
           _controller.value.duration,
-        );
-        print("After forward seek (end), isPlaying: ${_controller.value.isPlaying}, new position: ${_controller.value.duration}");
+        ); // Seek to end if overshoot
       }
     }
   }
 
   void _seekBackward() {
-    if (_isInitialized) {
+    if (_controller.value.isInitialized) {
       final currentPosition = _controller.value.position;
-      final newPosition = currentPosition - Duration(seconds: 10);
-
-      print("Before backward seek, isPlaying: ${_controller.value.isPlaying}, position: $currentPosition");
-      _controller.play();
-      print("After pause (backward), isPlaying: ${_controller.value.isPlaying}, position: ${_controller.value.position}");
-
+      final newPosition = currentPosition - const Duration(seconds: 10);
+      // Ensure seeking doesn't go before zero
       if (newPosition > Duration.zero) {
         _controller.seekTo(newPosition);
-        print("After backward seek, isPlaying: ${_controller.value.isPlaying}, new position: $newPosition");
       } else {
-        _controller.seekTo(Duration.zero);
-        print("After backward seek (start), isPlaying: ${_controller.value.isPlaying}, new position: Duration.zero");
+        _controller.seekTo(Duration.zero); // Seek to beginning if overshoot
       }
     }
   }
 
-  Widget _buildErrorDisplay() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error, color: Colors.red, size: 60),
-          SizedBox(height: 16),
-          Text(
-            'Failed to load video',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Please check the URL and try again',
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _hasError = false;
-                _initializeVideoPlayer();
-              });
-            },
-            child: Text('Retry'),
-          ),
-        ],
-      ),
-    );
+  // Method to toggle controls and manage auto-hide
+  void _toggleControls() {
+    if (!_controller.value.isInitialized)
+      return; // Don't show controls if not initialized
+
+    setState(() {
+      _showControls = true;
+    });
+
+    // Cancel any existing timer
+    _hideControlsTimer?.cancel();
+
+    // Start a new timer to hide controls after 3 seconds
+    _hideControlsTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted && _showControls) {
+        setState(() {
+          _showControls = false;
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(30.0),
-      child: _hasError ? _buildErrorDisplay() : _buildVideoPlayer(),
-    );
-  }
-
-  Widget _buildVideoPlayer() {
-    return GestureDetector(
-      onTap: () {
-        if (!_isInitialized) return;
-        setState(() {
-          _showControls = !_showControls;
-        });
-        if (_showControls) {
-          Future.delayed(const Duration(seconds: 4), () {
-            if (mounted && _showControls && _controller.value.isPlaying) {
-              setState(() { _showControls = false; });
-            }
-          });
-        }
-      },
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          if (_isInitialized)
-            Center(
-              child: AspectRatio(
+    return Column(
+      children: [
+        FutureBuilder(
+          future: _initializeVideoPlayerFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done &&
+                !_controller.value.hasError) {
+              return AspectRatio(
                 aspectRatio: _controller.value.aspectRatio,
-                child: VideoPlayer(_controller),
-              ),
-            )
-          else
-            const Center(child: CircularProgressIndicator()),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: AnimatedOpacity(
-              opacity: _showControls ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 300),
-              child: AbsorbPointer(
-                absorbing: !_showControls,
-                child: Container(
-                  color: Colors.black.withOpacity(0.4),
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.replay_10, color: Colors.white, size: 30),
-                            onPressed: _seekBackward,
-                            tooltip: 'Rewind 10 seconds',
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              _isInitialized && _controller.value.isPlaying
-                                  ? Icons.pause_circle_filled
-                                  : Icons.play_circle_filled,
-                              color: Colors.white,
-                              size: 50,
-                            ),
-                            onPressed: !_isInitialized ? null : () {
-                              setState(() {
-                                if (_controller.value.isPlaying) {
-                                  _stopVideo();
-                                } else {
-                                  _playVideo();
-                                }
-                              });
-                            },
-                            tooltip: _isInitialized && _controller.value.isPlaying ? 'Pause' : 'Play',
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.forward_10, color: Colors.white, size: 30),
-                            onPressed: _seekForward,
-                            tooltip: 'Forward 10 seconds',
-                          ),
-                        ],
+                child: GestureDetector(
+                  // Add GestureDetector here
+                  onTap: _toggleControls, // Call toggle method on tap
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: <Widget>[
+                      VideoPlayer(_controller),
+                      // Use AnimatedOpacity for controls
+                      AnimatedOpacity(
+                        opacity: _showControls ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 300),
+                        child: AbsorbPointer(
+                          absorbing:
+                              !_showControls, // Prevent interaction when hidden
+                          child: _buildControlsOverlay(),
+                        ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                        child: VideoProgressIndicator(
-                          _controller,
-                          allowScrubbing: true,
-                          colors: VideoProgressColors(
-                            playedColor: Colors.redAccent,
-                            bufferedColor: Colors.grey.shade400,
-                            backgroundColor: Colors.white.withOpacity(0.2),
+                      // Also wrap progress indicator with AnimatedOpacity
+                      AnimatedOpacity(
+                        opacity: _showControls ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 300),
+                        child: AbsorbPointer(
+                          absorbing: !_showControls,
+                          child: Padding(
+                            // Add some padding to lift it above bottom edge
+                            padding: const EdgeInsets.only(
+                              bottom: 8.0,
+                              left: 8.0,
+                              right: 8.0,
+                            ),
+                            child: VideoProgressIndicator(
+                              _controller,
+                              allowScrubbing: true,
+                              colors: const VideoProgressColors(
+                                playedColor: Colors.red,
+                                bufferedColor: Colors.grey,
+                                backgroundColor: Colors.black54,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
+              );
+            } else if (snapshot.hasError ||
+                (_controller.value.isInitialized &&
+                    _controller.value.hasError)) {
+              // If there was an error during initialization or playback
+              return AspectRatio(
+                aspectRatio: 16 / 9, // Default aspect ratio for error display
+                child: Container(
+                  color: Colors.black,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red, size: 48),
+                        SizedBox(height: 8),
+                        Text(
+                          'Could not load video',
+                          style: TextStyle(color: Colors.white),
+                          textAlign: TextAlign.center,
+                        ),
+                        // Optionally show more detailed error: snapshot.error.toString()
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            } else {
+              // Otherwise, display a loading indicator centered
+              return AspectRatio(
+                aspectRatio: 16 / 9, // Maintain aspect ratio during loading
+                child: Container(
+                  color: Colors.black, // Background color while loading
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+              );
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  // Helper method for controls overlay
+  Widget _buildControlsOverlay() {
+    return Stack(
+      children: <Widget>[
+        // Optional: Add a subtle gradient or background for controls
+        Container(
+          // Example gradient for better visibility
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.black.withOpacity(0.0),
+                Colors.black.withOpacity(0.5),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
           ),
-        ],
-      ),
+        ),
+        // Center Row for main controls (Play/Pause, Seek)
+        Align(
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Seek Backward Button
+              IconButton(
+                icon: const Icon(
+                  Icons.replay_10,
+                  color: Colors.white,
+                  size: 40,
+                ),
+                onPressed: _seekBackward,
+              ),
+              // Play/Pause Button (Animated)
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 50),
+                reverseDuration: const Duration(milliseconds: 200),
+                child: IconButton(
+                  key: ValueKey<bool>(
+                    _controller.value.isPlaying,
+                  ), // Key for animation
+                  icon: Icon(
+                    _controller.value.isPlaying
+                        ? Icons.pause_circle_filled
+                        : Icons.play_circle_filled,
+                    color: Colors.white,
+                    size: 70.0,
+                    semanticLabel:
+                        _controller.value.isPlaying ? 'Pause' : 'Play',
+                  ),
+                  onPressed: () {
+                    _controller.value.isPlaying
+                        ? _controller.pause()
+                        : _controller.play();
+                  },
+                ),
+              ),
+              // Seek Forward Button
+              IconButton(
+                icon: const Icon(
+                  Icons.forward_10,
+                  color: Colors.white,
+                  size: 40,
+                ),
+                onPressed: _seekForward,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
+  }
+
+  @override
+  void dispose() {
+    _hideControlsTimer?.cancel(); // Cancel timer on dispose
+    _initializeVideoPlayerFuture.then((_) => _controller.dispose());
+    super.dispose();
   }
 }
