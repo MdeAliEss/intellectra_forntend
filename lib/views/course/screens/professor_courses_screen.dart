@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'add_course_screen.dart'; // Import the screen to navigate to
 import 'package:intellectra/views/course/models/course.dart'; // Import Course model
 import 'package:intellectra/views/course/services/api_service.dart'; // Import ApiService
+import 'professor_course_detail_screen.dart';
 
 class ProfessorCoursesScreen extends StatefulWidget {
   final int professorId;
@@ -78,7 +79,10 @@ class _ProfessorCoursesScreenState extends State<ProfessorCoursesScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('My Courses'),
+          title: const Text(
+            'My Courses',
+            style: TextStyle(color: Colors.red), // Make title red
+          ),
           automaticallyImplyLeading:
               false, // Assuming this is a top-level screen after success/login
         ),
@@ -108,34 +112,101 @@ class _ProfessorCoursesScreenState extends State<ProfessorCoursesScreen> {
             // Display courses in a ListView
             final courses = snapshot.data!;
             return ListView.builder(
+              padding: const EdgeInsets.all(8.0), // Add padding around the list
               itemCount: courses.length,
               itemBuilder: (context, index) {
                 final course = courses[index];
-                return ListTile(
-                  // TODO: Add course image thumbnail if available
-                  // leading: course.image != null ? Image.network(course.image!, width: 50, height: 50, fit: BoxFit.cover) : null,
-                  title: Text(course.title),
-                  subtitle: Text(
-                    course.description,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                return Card(
+                  elevation: 3,
+                  margin: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 4.0,
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    tooltip: 'Delete Course',
-                    onPressed:
-                        () => _deleteCourse(course.id!), // Call delete method
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
-                  onTap: () {
-                    // TODO: Navigate to course detail/edit screen if needed
-                    print("Tapped on course: ${course.title}");
-                  },
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 10.0,
+                      horizontal: 15.0,
+                    ),
+                    leading: ClipRRect(
+                      // Use ClipRRect for rounded corners on image
+                      borderRadius: BorderRadius.circular(8.0),
+                      child:
+                          course.image != null
+                              ? Image.network(
+                                course.image ?? '',
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                                // Add error builder for network images
+                                errorBuilder:
+                                    (context, error, stackTrace) => Container(
+                                      width: 60,
+                                      height: 60,
+                                      color: Colors.grey[300],
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                              )
+                              : Container(
+                                width: 60,
+                                height: 60,
+                                color: Colors.grey[300],
+                                child: Icon(
+                                  Icons.school,
+                                  color: Colors.grey[600],
+                                ),
+                              ), // Placeholder icon
+                    ),
+                    title: Text(
+                      course.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        course.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: Colors.redAccent,
+                      ),
+                      tooltip: 'Delete Course',
+                      onPressed:
+                          () => _deleteCourse(course.id!), // Call delete method
+                    ),
+                    onTap: () {
+                      // Navigate to the professor-specific detail screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => ProfessorCourseDetailScreen(
+                                courseId: course.id!,
+                              ),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             );
           },
         ),
         floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.red, // Set background color to red
+          foregroundColor: Colors.white, // Ensure icon is visible (white)
           child: const Icon(Icons.add),
           tooltip: 'Add New Course',
           onPressed: () async {
