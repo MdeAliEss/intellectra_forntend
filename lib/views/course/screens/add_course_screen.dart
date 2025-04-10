@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as p;
 
 // Models
 import '../models/category.dart';
@@ -16,6 +17,9 @@ import 'components/file_picker_component.dart';
 import 'components/category_selector_component.dart';
 import 'components/quiz_input_component.dart';
 import 'components/add_quiz_button.dart';
+import 'components/course_form_buttons.dart';
+import 'package:intellectra/components/constants.dart'; // Import for primaryColor
+import 'package:intellectra/components/auth_build.dart'; // Import for buildButton
 
 // Import the success screen
 import 'course_success_screen.dart';
@@ -189,7 +193,12 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add New Course')),
+      appBar: AppBar(
+        title: Text(
+          'Add New Course',
+          style: TextStyle(color: Colors.red), // Make AppBar title red
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -265,25 +274,158 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               const SizedBox(height: 16),
 
               // --- File Pickers ---
-              FilePickerComponent(
-                labelText: 'PDF Document (Optional)',
-                fileType: FileType.custom,
-                allowedExtensions: ['pdf'],
-                selectedFile: _pdfFile,
-                onFileSelected: (file) => setState(() => _pdfFile = file),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: buildCourseActionButton(
+                            text: "Choose PDF",
+                            icon: Icons.picture_as_pdf,
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.red,
+                            onPressed: () async {
+                              FilePickerResult? result = await FilePicker
+                                  .platform
+                                  .pickFiles(
+                                    type: FileType.custom,
+                                    allowedExtensions: ['pdf'],
+                                  );
+                              if (result != null &&
+                                  result.files.single.path != null) {
+                                setState(
+                                  () =>
+                                      _pdfFile = File(
+                                        result.files.single.path!,
+                                      ),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _pdfFile != null
+                                ? p.basename(_pdfFile!.path)
+                                : 'No file selected',
+                            style: TextStyle(
+                              fontStyle:
+                                  _pdfFile == null
+                                      ? FontStyle.italic
+                                      : FontStyle.normal,
+                              color: _pdfFile == null ? Colors.grey : null,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              FilePickerComponent(
-                labelText: 'Video File (Optional)',
-                fileType: FileType.video,
-                // allowedExtensions: ['mp4', 'mov', 'avi'], // Add specific types if needed
-                selectedFile: _videoFile,
-                onFileSelected: (file) => setState(() => _videoFile = file),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: buildCourseActionButton(
+                            text: "Choose Video",
+                            icon: Icons.video_collection,
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.red,
+                            onPressed: () async {
+                              FilePickerResult? result = await FilePicker
+                                  .platform
+                                  .pickFiles(type: FileType.video);
+                              if (result != null &&
+                                  result.files.single.path != null) {
+                                setState(
+                                  () =>
+                                      _videoFile = File(
+                                        result.files.single.path!,
+                                      ),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _videoFile != null
+                                ? p.basename(_videoFile!.path)
+                                : 'No file selected',
+                            style: TextStyle(
+                              fontStyle:
+                                  _videoFile == null
+                                      ? FontStyle.italic
+                                      : FontStyle.normal,
+                              color: _videoFile == null ? Colors.grey : null,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              FilePickerComponent(
-                labelText: 'Course Image (Optional)',
-                fileType: FileType.image,
-                selectedFile: _imageFile,
-                onFileSelected: (file) => setState(() => _imageFile = file),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: buildCourseActionButton(
+                            text: "Choose Image",
+                            icon: Icons.image,
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.red,
+                            onPressed: () async {
+                              FilePickerResult? result = await FilePicker
+                                  .platform
+                                  .pickFiles(type: FileType.image);
+                              if (result != null &&
+                                  result.files.single.path != null) {
+                                setState(
+                                  () =>
+                                      _imageFile = File(
+                                        result.files.single.path!,
+                                      ),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _imageFile != null
+                                ? p.basename(_imageFile!.path)
+                                : 'No file selected',
+                            style: TextStyle(
+                              fontStyle:
+                                  _imageFile == null
+                                      ? FontStyle.italic
+                                      : FontStyle.normal,
+                              color: _imageFile == null ? Colors.grey : null,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -301,7 +443,12 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               const SizedBox(height: 24),
 
               // --- Quizzes Section ---
-              Text("Quizzes", style: Theme.of(context).textTheme.headlineSmall),
+              Text(
+                "Quizzes",
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.red, // Make title red
+                ),
+              ),
               const Divider(),
               if (_quizzesMap.isEmpty)
                 const Padding(
@@ -326,29 +473,26 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                   onRemove: () => _removeQuiz(key),
                 );
               }).toList(),
-              AddQuizButton(onPressed: _addQuiz),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: buildCourseActionButton(
+                  text: "Add Quiz",
+                  icon: Icons.add_circle_outline,
+                  onPressed: _addQuiz,
+                  minWidth: double.infinity,
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.red,
+                ),
+              ),
 
               const SizedBox(height: 32),
-              // --- Submit Button ---
-              ElevatedButton(
-                onPressed:
-                    _isLoading
-                        ? null
-                        : _submitForm, // Disable button while loading
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child:
-                    _isLoading
-                        ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                        : const Text('Create Course'),
+              // --- Submit Button (Use auth_build style) ---
+              buildButton(
+                'Create Course',
+                _isLoading
+                    ? () {}
+                    : _submitForm, // Disable via empty function when loading
+                // TODO: Maybe add a loading indicator inside buildButton?
               ),
             ],
           ),
