@@ -34,15 +34,17 @@ Widget buildButton(String text, Function onPressed) {
   );
 }
 
-Widget buildTextField(String hintText , TextEditingController controller , bool isPassword){
+Widget buildTextField(
+  String hintText,
+  TextEditingController controller,
+  bool isPassword,
+) {
   return TextField(
     controller: controller,
     obscureText: isPassword,
     decoration: InputDecoration(
       hintText: hintText,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
     ),
   );
 }
