@@ -18,7 +18,6 @@ class Quiz {
   }
 
   factory Quiz.fromJson(Map<String, dynamic> json) {
-    // Ensure answers is a list of strings
     var answersFromJson = json['answers'];
     List<String> answersList;
     if (answersFromJson is List) {
@@ -26,12 +25,11 @@ class Quiz {
         answersFromJson.map((item) => item.toString()),
       );
     } else {
-      answersList =
-          []; // Handle case where answers might be missing or not a list
+      answersList = [];
     }
 
-    // Ensure correct_answer is an int
-    var correctIndexFromJson = json['correct_answer'];
+    // Ensure correct_index is an int
+    var correctIndexFromJson = json['correct_index']; // Change to correct_index
     int correctIndex;
     if (correctIndexFromJson is int) {
       correctIndex = correctIndexFromJson;
@@ -43,9 +41,11 @@ class Quiz {
       correctIndex = 0; // Default or error handling
     }
 
+    print('JSON Data: $json'); // Debugging output
+    print('Correct Index from JSON: $correctIndexFromJson'); // Debugging output
+
     // Basic validation on loaded data
     if (answersList.length < 2) {
-      // Handle invalid data - perhaps log an error or use default values
       print("Warning: Quiz loaded with less than 2 answers.");
       answersList.addAll(
         List.filled(2 - answersList.length, 'Placeholder Answer'),
@@ -60,7 +60,7 @@ class Quiz {
       question:
           json['question']?.toString() ?? '', // Provide default empty string
       answers: answersList,
-      correctAnswerIndex: correctIndex,
+      correctAnswerIndex: correctIndex, // Use the updated name
     );
   }
 

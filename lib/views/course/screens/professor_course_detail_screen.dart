@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intellectra/components/constants.dart'; // For colors if needed
+import 'package:google_fonts/google_fonts.dart'; // For colors if needed
 import 'package:intellectra/views/course/models/course.dart';
 import 'package:intellectra/views/course/models/quiz.dart'; // Import Quiz model
 import 'package:intellectra/views/course/services/api_service.dart';

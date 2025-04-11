@@ -4,21 +4,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 
 // Models
-import '../models/category.dart';
 import '../models/quiz.dart';
-import '../models/course.dart';
 
 // Services
 import '../services/api_service.dart';
 
 // Components
 import 'components/text_field_component.dart';
-import 'components/file_picker_component.dart';
 import 'components/category_selector_component.dart';
 import 'components/quiz_input_component.dart';
-import 'components/add_quiz_button.dart';
-import 'components/course_form_buttons.dart';
-import 'package:intellectra/components/constants.dart'; // Import for primaryColor
+import 'components/course_form_buttons.dart'; // Import for primaryColor
 import 'package:intellectra/components/auth_build.dart'; // Import for buildButton
 
 // Import the success screen

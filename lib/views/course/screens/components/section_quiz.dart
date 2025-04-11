@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 // Make sure these paths are correct for your project structure
 import 'package:intellectra/components/constants.dart'; // Assuming you have this for primaryColor
-import '../../models/course.dart'; // Add correct import
-import '../../models/quiz.dart'; // Ensure Quiz model is imported
+import '../../models/course.dart';
 
 class SectionQuiz extends StatefulWidget {
   final Course course; // The course data containing quizzes

@@ -55,97 +55,41 @@ class SectionMenu {
                 // Use Flexible + shrinkWrap for ListView in Column
                 child: ListView.builder(
                   shrinkWrap: true,
-                  itemCount:
-                      course.pdfInternalData?.sections.length ??
-                      0, // Null check
+                  itemCount: totalMenuItems,
                   itemBuilder: (BuildContext context, int index) {
-                    // Access sections only if pdfInternalData is not null
-                    final sectionTitle =
-                        course.pdfInternalData?.sections[index].title ??
-                        'Unknown Section';
-                    final isCurrent = index == currentVisiblePageIndex;
-
-                    // Determine the target PageView index for this menu item.
-                    // Menu index corresponds directly to PageView index here.
+                    String title;
+                    bool isSelected = (index == currentVisiblePageIndex);
                     int targetPageIndex = index;
 
-                    bool isSelected =
-                        (targetPageIndex == currentVisiblePageIndex);
-                    String title;
-                    Widget leadingWidget;
-
-                    // --- Build Section Item ---
                     if (index < sections.length) {
-                      // Get title from the section data
-                      title = sectionTitle;
-                      // Create leading widget (e.g., numbered circle)
-                      leadingWidget = CircleAvatar(
-                        radius: 14,
-                        backgroundColor:
-                            isSelected ? primaryColor : Colors.grey.shade300,
-                        foregroundColor:
-                            isSelected ? Colors.white : Colors.black54,
-                        // Displaying index + 1 for user-friendly numbering (1, 2, 3...)
-                        child: Text(
-                          '${index + 1}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                    }
-                    // --- Build Quiz Item (only if quizzes exist and index is the last one) ---
-                    else if (hasQuizzes && index == sections.length) {
-                      title = 'Quizzes';
-                      // Create leading widget (e.g., icon)
-                      leadingWidget = CircleAvatar(
-                        radius: 14,
-                        backgroundColor:
-                            isSelected ? primaryColor : Colors.grey.shade300,
-                        foregroundColor:
-                            isSelected ? Colors.white : Colors.black54,
-                        child: const Icon(Icons.quiz_outlined, size: 16),
-                      );
-                      // Ensure targetPageIndex is correctly set to sections.length
-                      targetPageIndex = sections.length;
-                      // Re-check selection based on correct quiz page index
-                      isSelected = (targetPageIndex == currentVisiblePageIndex);
-                    }
-                    // --- Fallback (shouldn't normally be reached) ---
-                    else {
+                      title = sections[index].title; // Section title
+                    } else if (hasQuizzes) {
+                      title = 'Quizzes'; // Title for the quiz section
+                      targetPageIndex =
+                          sections.length; // Set target to quiz page
+                    } else {
                       return const SizedBox.shrink(); // Render nothing if index is unexpected
                     }
 
-                    // --- Create the ListTile ---
                     return ListTile(
-                      leading: leadingWidget,
                       title: Text(
                         title,
                         style: TextStyle(
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.normal,
-                          color:
-                              isSelected
-                                  ? primaryColor
-                                  : null, // Highlight selected item text
+                          color: isSelected ? primaryColor : null,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       selected: isSelected,
-                      // Use theme's selection color or define your own
-                      // selectedTileColor: primaryColor.withOpacity(0.08),
                       onTap: () {
-                        // Animate the PageView to the target page index
                         pageController.animateToPage(
                           targetPageIndex,
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
                         );
-                        // Notify the parent widget about the page change
                         onPageSelected(targetPageIndex);
-                        // Close the bottom sheet
                         Navigator.pop(context);
                       },
                     );

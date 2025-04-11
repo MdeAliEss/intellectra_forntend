@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intellectra/components/constants.dart';
+import 'package:intellectra/views/profile/profile_screen.dart';
 import 'add_course_screen.dart'; // Import the screen to navigate to
 import 'package:intellectra/views/course/models/course.dart'; // Import Course model
 import 'package:intellectra/views/course/services/api_service.dart'; // Import ApiService
 import 'professor_course_detail_screen.dart';
+import 'package:intellectra/components/bottom_navigation.dart'; // Import profile screen (adjust path if needed)
 
 class ProfessorCoursesScreen extends StatefulWidget {
   final int professorId;
@@ -226,6 +229,32 @@ class _ProfessorCoursesScreenState extends State<ProfessorCoursesScreen> {
               _fetchCourses();
             }
           },
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: 0, // 0 for "My Courses"
+          onTap: (index) {
+            if (index == 1) {
+              // Navigate to Profile screen
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) =>
+                          const ProfileScreen(), // Using the correct class name from import
+                ),
+              );
+            }
+            // Index 0 is the current screen, so no action needed
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.book),
+              label: 'My Courses',
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          ],
+          selectedItemColor: primaryColor,
+          unselectedItemColor: Colors.grey,
         ),
       ),
     );

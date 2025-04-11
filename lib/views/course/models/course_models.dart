@@ -1,21 +1,25 @@
+import 'category.dart';
+import 'quiz.dart';
+import 'course_pdf_internal.dart';
+
 class Course {
-  final int id;
+  final int? id;
   final String title;
   final String description;
   final String? pdfs;
   final String? videos;
-  final String image;
+  final String? image;
   final String fileType;
   final String duration;
   final double rating;
   final DateTime createdAt;
-  final int professor;
-  final int category;
+  final int professorId;
+  final int categoryId;
   final PdfInternalData pdfInternalData;
-  final List<CourseQuiz> quizzes; // ✅ Replaces question/answer/correctAnswer
+  final List<Quiz> quizzes;
 
   Course({
-    required this.id,
+    this.id,
     required this.title,
     required this.description,
     this.pdfs,
@@ -25,8 +29,8 @@ class Course {
     required this.duration,
     required this.rating,
     required this.createdAt,
-    required this.professor,
-    required this.category,
+    required this.professorId,
+    required this.categoryId,
     required this.pdfInternalData,
     required this.quizzes,
   });
@@ -43,21 +47,33 @@ class Course {
       duration: json['duration'] ?? '0',
       rating: (json['rating'] ?? 0.0).toDouble(),
       createdAt: DateTime.parse(json['created_at']),
-      professor: json['professor'] ?? 0,
-      category: json['category'] ?? 0,
-      pdfInternalData: PdfInternalData.fromJson(json['pdf_internal_data'] ?? {
-        'id': 0,
-        'name': '',
-        'table_of_contents': [],
-        'sections': [],
-      }),
-      quizzes: (json['quizzes'] ?? [])
-          .map<CourseQuiz>((q) => CourseQuiz.fromJson(q))
-          .toList(),
+      professorId: json['professor'] ?? 0,
+      categoryId: json['category'] ?? 0,
+      pdfInternalData: PdfInternalData.fromJson(
+        json['pdf_internal_data'] ??
+            {'id': 0, 'name': '', 'table_of_contents': [], 'sections': []},
+      ),
+      quizzes:
+          (json['quizzes'] ?? []).map<Quiz>((q) => Quiz.fromJson(q)).toList(),
     );
   }
-}
 
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {
+      'title': title,
+      'description': description,
+      'duration': duration,
+      'category': categoryId,
+      'professor': professorId,
+      'quizzes': quizzes.map((q) => q.toJson()).toList(),
+      'file_type': fileType,
+    };
+    if (id != null) {
+      data['id'] = id;
+    }
+    return data;
+  }
+}
 
 class PdfInternalData {
   final int id;
@@ -112,7 +128,8 @@ class CourseQuiz {
   final int id;
   final String question; // The quiz question text
   final List<String> answers; // The list of possible answer texts
-  final int correctAnswer; // The INDEX of the correct answer in the 'answers' list
+  final int
+  correctAnswer; // The INDEX of the correct answer in the 'answers' list
   final int order;
 
   CourseQuiz({
@@ -135,5 +152,3 @@ class CourseQuiz {
     );
   }
 }
-
-
